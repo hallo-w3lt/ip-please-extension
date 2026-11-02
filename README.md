@@ -4,7 +4,7 @@ Extension for Brave / Chrome / Edge (Manifest V3) that checks your public IP at 
 
 ## Installation (developer mode)
 
-Get the code with `git clone https://github.com/hallo-w3lt/ip-please-extension.git`, or download the ZIP from GitHub and unpack it. Then:
+Get the code with `git clone https://github.com/hallo-w3lt/ip-please-extension.git`, or download the ZIP from GitHub and unpack it. It needs a browser based on Chromium 120 or later, which is the `minimum_chrome_version` in `manifest.json`. Then:
 
 1. Open `brave://extensions` (or `chrome://extensions`).
 2. Turn on **Developer mode** (top right).
@@ -35,6 +35,12 @@ Changes are saved automatically.
 - **Check the IP on every visit** (on by default): when you open a protected site in a tab, it first goes through the check page, which verifies your IP at that moment. That way, a VPN you just turned on can't slip through between two periodic checks.
 - **Block if the country can't be determined** (on by default): if there's no connection or the services fail, protected sites stay blocked.
 - **On browser start**: the last known country is discarded and checked again.
+
+## Privacy
+
+- **What leaves your browser**: only the IP lookup requests, which go straight from your browser to the services listed above. Each of them sees your public IP address, which is how they can tell the country. Apart from the standard headers any web request carries, nothing else of yours is sent: no page addresses, no browsing history, no rules.
+- **What stays in your browser**: your rules and settings, and the last IP and country that were detected, all in `chrome.storage.local`. To send sites that are already open to the block page, the extension reads the address of your open tabs. It does this locally and never transmits it.
+- **What it doesn't have**: no account, no analytics, no ads and no remote code.
 
 ## Limitations
 
