@@ -4,6 +4,8 @@ Extension for Brave / Chrome / Edge (Manifest V3) that checks your public IP at 
 
 ## Installation (developer mode)
 
+Get the code with `git clone https://github.com/hallo-w3lt/ip-please-extension.git`, or download the ZIP from GitHub and unpack it. Then:
+
 1. Open `brave://extensions` (or `chrome://extensions`).
 2. Turn on **Developer mode** (top right).
 3. Click **Load unpacked** and select this repository's folder (the one that contains `manifest.json`).
@@ -40,3 +42,11 @@ Changes are saved automatically.
 - If your network has both IPv4 and IPv6, the site might see a different IP from the one that was checked.
 - Mobile and desktop apps (for example, Messenger for desktop) don't go through the browser, so they aren't blocked.
 - An already-authorized tab that stays open relies on the periodic check. At 30 s or 1 min, the window is small.
+
+## Related
+
+[my-country](https://github.com/hallo-w3lt/claude-plus-plus) is a Claude Code plugin that shows the country of your IP under the prompt, using the same lookup services.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
