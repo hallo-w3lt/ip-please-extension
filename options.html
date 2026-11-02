@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IP Please</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="page">
+    <header class="row between">
+      <div>
+        <h1>IP Please</h1>
+        <p class="muted" data-i18n="tagline"></p>
+      </div>
+      <span class="muted small saved" id="saved" data-i18n="saved"></span>
+    </header>
+
+    <section class="card row between">
+      <div class="grow">
+        <div><strong id="cur-country">—</strong> <span class="muted" id="cur-ip"></span></div>
+        <div class="muted small" id="cur-checked"></div>
+        <div class="error small" id="cur-error" hidden></div>
+      </div>
+      <button id="check" data-i18n="checkNow"></button>
+    </section>
+
+    <section class="card">
+      <h2 data-i18n="general"></h2>
+      <label class="field">
+        <span data-i18n="language"></span>
+        <select id="lang">
+          <option value="auto" data-i18n="langAuto"></option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+        </select>
+      </label>
+      <label class="field">
+        <span data-i18n="interval"></span>
+        <select id="interval">
+          <option value="30" data-i18n="sec30"></option>
+          <option value="60" data-i18n="min1"></option>
+          <option value="120" data-i18n="min2"></option>
+          <option value="300" data-i18n="min5"></option>
+          <option value="600" data-i18n="min10"></option>
+          <option value="1800" data-i18n="min30"></option>
+        </select>
+      </label>
+      <label class="check">
+        <input type="checkbox" id="strict">
+        <span data-i18n="strictLabel"></span>
+        <small data-i18n="strictHelp"></small>
+      </label>
+      <label class="check">
+        <input type="checkbox" id="failClosed">
+        <span data-i18n="failClosedLabel"></span>
+        <small data-i18n="failClosedHelp"></small>
+      </label>
+      <label class="check">
+        <input type="checkbox" id="notify">
+        <span data-i18n="notifyLabel"></span>
+      </label>
+    </section>
+
+    <section class="card">
+      <div class="row between">
+        <h2 style="margin: 0" data-i18n="rules"></h2>
+        <select id="add" style="width: auto">
+          <option value="" data-i18n="addRule"></option>
+          <option value="blank" data-i18n="blankRule"></option>
+        </select>
+      </div>
+      <div class="rules" id="rules"></div>
+    </section>
+  </main>
+
+  <datalist id="countries"></datalist>
+
+  <template id="rule-tpl">
+    <div class="rule">
+      <div class="row">
+        <input class="name grow" data-i18n-placeholder="ruleName" style="width: auto">
+        <label class="row small"><input type="checkbox" class="enabled"> <span data-i18n="enabled"></span></label>
+        <button class="ghost danger del" data-i18n="delete"></button>
+      </div>
+      <label class="field">
+        <span><span data-i18n="domains"></span> <span class="muted small" data-i18n="domainsHint"></span></span>
+        <textarea class="domains" rows="3" placeholder="facebook.com&#10;fbcdn.net"></textarea>
+      </label>
+      <label class="field">
+        <span data-i18n="condition"></span>
+        <select class="mode">
+          <option value="allow" data-i18n="modeAllow"></option>
+          <option value="block" data-i18n="modeBlock"></option>
+        </select>
+      </label>
+      <div class="chips"></div>
+      <div class="row country-row">
+        <input class="country-input" list="countries" data-i18n-placeholder="countryPlaceholder">
+        <button class="add-country" data-i18n="add"></button>
+        <button class="ghost add-current"></button>
+      </div>
+      <p class="warn small" hidden></p>
+    </div>
+  </template>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>

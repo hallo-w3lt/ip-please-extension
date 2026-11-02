@@ -1,0 +1,4 @@
+{
+  "extName": { "message": "IP Please" },
+  "extDescription": { "message": "Bloquea sitios según el país de tu IP pública. Evita entrar con VPN a sitios que no lo admiten." }
+}

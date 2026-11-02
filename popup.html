@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>IP Please</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="popup">
+  <header class="row between">
+    <strong>IP Please</strong>
+    <button id="opts" class="ghost" data-i18n="rulesButton" data-i18n-title="settingsTitle"></button>
+  </header>
+
+  <section class="card status">
+    <div class="country" id="country">—</div>
+    <div class="muted" id="ip"></div>
+    <div class="muted small" id="checked"></div>
+    <div class="error small" id="error" hidden></div>
+  </section>
+
+  <section class="rule-list" id="rules"></section>
+
+  <footer class="row">
+    <button id="check" class="primary" data-i18n="checkNow"></button>
+  </footer>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IP Please</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="gate">
+  <main class="card gate-card" id="card">
+    <svg class="shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6l8-3z"/>
+      <path d="M9.5 12.5l1.8 1.8 3.5-3.8" id="tick"/>
+    </svg>
+    <h1 id="title"><span class="spinner"></span> <span data-i18n="gateChecking"></span></h1>
+    <p class="host" id="host"></p>
+
+    <div id="details" hidden>
+      <p id="reason"></p>
+      <dl class="kv">
+        <dt data-i18n="gateYourIp"></dt><dd id="ip">—</dd>
+        <dt data-i18n="gateCountry"></dt><dd id="country">—</dd>
+        <dt data-i18n="gateChecked"></dt><dd id="checked">—</dd>
+      </dl>
+      <ul class="reqs" id="reqs"></ul>
+      <p class="muted small" data-i18n="gateHint"></p>
+      <div class="row center" style="margin-top: 16px">
+        <button id="retry" class="primary" data-i18n="retry"></button>
+        <button id="back" data-i18n="back"></button>
+        <button id="opts" class="ghost" data-i18n="configureRules"></button>
+      </div>
+    </div>
+  </main>
+  <script type="module" src="gate.js"></script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f5f6f8;
+  --card: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --input: #ffffff;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --ok: #16a34a;
+  --ok-bg: #dcfce7;
+  --bad: #dc2626;
+  --bad-bg: #fee2e2;
+  --warn: #b45309;
+  --chip: #e0e7ff;
+  --chip-text: #3730a3;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1115;
+    --card: #181b21;
+    --text: #e5e7eb;
+    --muted: #9ca3af;
+    --border: #2b303a;
+    --input: #11141a;
+    --primary: #3b82f6;
+    --primary-hover: #60a5fa;
+    --ok: #22c55e;
+    --ok-bg: #14301f;
+    --bad: #f87171;
+    --bad-bg: #3a1717;
+    --warn: #f59e0b;
+    --chip: #1f2747;
+    --chip-text: #c7d2fe;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+h1, h2 { margin: 0 0 8px; line-height: 1.2; }
+h1 { font-size: 22px; }
+h2 { font-size: 16px; }
+p { margin: 0 0 8px; }
+a { color: var(--primary); }
+
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.error { color: var(--bad); }
+.warn { color: var(--warn); margin: 6px 0 0; }
+.center { text-align: center; justify-content: center; }
+[hidden] { display: none !important; }
+
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.between { justify-content: space-between; }
+.grow { flex: 1; min-width: 0; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+button, select, input, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 8px;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+button:hover { border-color: var(--muted); }
+button.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+button.primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+button.ghost { background: transparent; border-color: transparent; }
+button.ghost:hover { border-color: var(--border); }
+button.danger { color: var(--bad); }
+button:disabled { opacity: .6; cursor: default; }
+
+input[type="text"], input:not([type]), select, textarea {
+  background: var(--input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 10px;
+  width: 100%;
+}
+textarea { resize: vertical; font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); outline-offset: -1px; }
+
+.field { display: flex; flex-direction: column; gap: 4px; margin-top: 12px; }
+.field > span { font-weight: 600; font-size: 13px; }
+
+.check {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  margin-top: 14px;
+  cursor: pointer;
+}
+.check input { margin: 3px 0 0; width: 16px; height: 16px; accent-color: var(--primary); }
+.check small { grid-column: 2; color: var(--muted); font-size: 12px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; min-height: 8px; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--chip);
+  color: var(--chip-text);
+  border-radius: 999px;
+  padding: 3px 4px 3px 10px;
+  font-size: 13px;
+}
+.chip button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0 6px;
+  line-height: 1;
+  font-size: 15px;
+}
+
+.pill {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.pill.ok { background: var(--ok-bg); color: var(--ok); }
+.pill.bad { background: var(--bad-bg); color: var(--bad); }
+
+/* Popup ------------------------------------------------------------------ */
+
+body.popup { width: 340px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.popup header strong { font-size: 15px; }
+.status .country { font-size: 18px; font-weight: 700; }
+.rule-list { display: flex; flex-direction: column; gap: 6px; }
+.rule-status {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px;
+}
+.rule-status .name { font-weight: 600; }
+.popup footer button { flex: 1; }
+
+/* Options ---------------------------------------------------------------- */
+
+.page { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; display: flex; flex-direction: column; gap: 16px; }
+.rules { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.rule { border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+.rule.disabled { opacity: .55; }
+.rule .name { font-weight: 600; }
+.rule .country-row input { flex: 1; min-width: 160px; width: auto; }
+.empty { text-align: center; padding: 24px; border: 1px dashed var(--border); border-radius: 10px; }
+.saved { transition: opacity .4s; opacity: 0; }
+.saved.show { opacity: 1; }
+
+/* Gate ------------------------------------------------------------------- */
+
+body.gate { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+.gate-card { max-width: 520px; width: 100%; text-align: center; padding: 32px 24px; }
+.gate-card .shield { width: 56px; height: 56px; color: var(--muted); margin-bottom: 12px; }
+.gate-card.blocked .shield { color: var(--bad); }
+.gate-card .host { font-family: ui-monospace, Consolas, monospace; color: var(--muted); word-break: break-all; }
+.kv {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 16px;
+  text-align: left;
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--bg);
+}
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; font-weight: 600; word-break: break-all; }
+.reqs { text-align: left; margin: 0 0 12px; padding-left: 20px; }
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  display: inline-block;
+  vertical-align: middle;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
