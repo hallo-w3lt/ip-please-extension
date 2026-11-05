@@ -1,5 +1,5 @@
 import {
-  DEFAULT_STATE, getSettings, getState, isRuleBlocked, hostMatches, countryName,
+  DEFAULT_STATE, getSettings, getState, isRuleBlocked, hostMatches, countryName, badgeText, noCountryLabel,
 } from './common.js';
 import { setLang, t } from './i18n.js';
 
@@ -7,6 +7,11 @@ const ALARM = 'ip-check';
 const GATE_URL = chrome.runtime.getURL('gate.html');
 const TIMEOUT_MS = 6000;
 const AUTHORIZE_MAX_AGE_MS = 10_000;
+// While the IP stays the same its country is kept, but re-resolved this often
+// so a corrected geolocation database is picked up.
+const REVERIFY_MS = 30 * 60_000;
+// How long a changed IP may spend looking for a second provider to agree.
+const CONFIRM_MS = 5000;
 
 // Tried in order until one returns a valid country code.
 const PROVIDERS = [
@@ -50,31 +55,99 @@ const PROVIDERS = [
   },
 ];
 
-async function fetchWithTimeout(url) {
+// `offline` marks failures where the provider couldn't be reached at all, as
+// opposed to answering with an error or something unusable.
+class LookupError extends Error {
+  constructor(message, offline = false) {
+    super(message);
+    this.offline = offline;
+  }
+}
+
+function failure(e) {
+  const timedOut = e.name === 'AbortError';
+  return new LookupError(timedOut ? t('errTimeout') : e.message, true);
+}
+
+// One request to one provider. The timer also covers reading the body: a body
+// that stalls would otherwise leave the check pending forever.
+async function query(provider) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {
-    const res = await fetch(url, { cache: 'no-store', credentials: 'omit', redirect: 'error', signal: ctrl.signal });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res;
+    let res;
+    try {
+      res = await fetch(provider.url, { cache: 'no-store', credentials: 'omit', redirect: 'error', signal: ctrl.signal });
+    } catch (e) {
+      throw failure(e);
+    }
+    if (!res.ok) throw new LookupError(`HTTP ${res.status}`);
+
+    let parsed;
+    try {
+      parsed = await provider.parse(res);
+    } catch (e) {
+      throw e.name === 'AbortError' ? failure(e) : new LookupError(e.message);
+    }
+    const code = String(parsed.country || '').toUpperCase();
+    if (!/^[A-Z][A-Z0-9]$/.test(code) || code === 'XX') throw new LookupError(t('errInvalidCountry'));
+    return { ip: parsed.ip || null, country: code, provider: provider.name };
   } finally {
     clearTimeout(timer);
   }
 }
 
+// First provider that answers, plus the names of the ones that failed before it.
 async function lookup() {
   const errors = [];
+  const failed = new Set();
+  let offline = true;
   for (const provider of PROVIDERS) {
     try {
-      const { ip, country } = await provider.parse(await fetchWithTimeout(provider.url));
-      const code = String(country || '').toUpperCase();
-      if (!/^[A-Z][A-Z0-9]$/.test(code) || code === 'XX') throw new Error(t('errInvalidCountry'));
-      return { ip: ip || null, country: code, provider: provider.name };
+      return { first: await query(provider), failed };
     } catch (e) {
-      errors.push(`${provider.name}: ${e.name === 'AbortError' ? t('errTimeout') : e.message}`);
+      offline &&= e.offline === true;
+      failed.add(provider.name);
+      errors.push(`${provider.name}: ${e.message}`);
     }
   }
-  throw new Error(errors.join(' · '));
+  if (offline || navigator.onLine === false) throw new LookupError(t('errOffline'), true);
+  throw new LookupError(errors.join(' · '));
+}
+
+// The country is a function of the IP, so it only needs resolving when the IP
+// changes. When it does, a single provider's (possibly lagging) database isn't
+// trusted: other providers that report the same IP vote, and the country two
+// of them agree on wins. If nobody agrees, the first provider's answer stands.
+async function confirmCountry(first, failed) {
+  const votes = new Map([[first.country, 1]]);
+  const deadline = Date.now() + CONFIRM_MS;
+  for (const provider of PROVIDERS) {
+    if (provider.name === first.provider || failed.has(provider.name)) continue;
+    if (Date.now() > deadline) break;
+    let answer;
+    try {
+      answer = await query(provider);
+    } catch {
+      continue;
+    }
+    // Another IP (e.g. IPv6 vs IPv4, or a network still switching) isn't comparable.
+    if (answer.ip !== first.ip) continue;
+    const n = (votes.get(answer.country) ?? 0) + 1;
+    votes.set(answer.country, n);
+    if (n >= 2) return answer.country;
+  }
+  return first.country;
+}
+
+async function resolve(prev, { force }) {
+  const { first, failed } = await lookup();
+  const unchanged = !force && prev.country && prev.ip && first.ip === prev.ip
+    && Date.now() - prev.resolvedAt < REVERIFY_MS;
+  if (unchanged) {
+    return { ip: first.ip, country: prev.country, provider: first.provider, resolvedAt: prev.resolvedAt };
+  }
+  return { ...first, country: await confirmCountry(first, failed), resolvedAt: Date.now() };
 }
 
 // ---------------------------------------------------------------------------
@@ -82,7 +155,19 @@ async function lookup() {
 
 let inflight = null;
 
-function checkIp({ maxAgeMs = 0 } = {}) {
+// Applying rules and saving the state must not interleave: two overlapping
+// updateDynamicRules calls fail on duplicate ids, and a slow writer would
+// overwrite the result of a newer check.
+let queue = Promise.resolve();
+
+function serialize(fn) {
+  const run = queue.then(fn);
+  queue = run.catch(() => {});
+  return run;
+}
+
+// `force` re-resolves the country even if the IP hasn't changed.
+function checkIp({ maxAgeMs = 0, force = false } = {}) {
   if (inflight) return inflight;
   inflight = (async () => {
     const prev = await getState();
@@ -91,13 +176,22 @@ function checkIp({ maxAgeMs = 0 } = {}) {
 
     let next;
     try {
-      next = { ...(await lookup()), checkedAt: Date.now(), error: null };
+      next = { ...DEFAULT_STATE, ...(await resolve(prev, { force })), checkedAt: Date.now() };
     } catch (e) {
-      next = { ...DEFAULT_STATE, checkedAt: Date.now(), error: e.message };
+      next = { ...DEFAULT_STATE, checkedAt: Date.now(), error: e.message, offline: e.offline === true };
     }
-    next.blockedKey = await sync(next, prev.blockedKey);
-    await chrome.storage.local.set({ state: next });
-    return next;
+    return serialize(async () => {
+      const { blockedKey } = await getState();
+      try {
+        next.blockedKey = await sync(next, blockedKey);
+      } catch (e) {
+        // Whatever went wrong applying the rules, the new state must still be saved.
+        console.error('IP Please: could not apply the rules', e);
+        next.blockedKey = blockedKey;
+      }
+      await chrome.storage.local.set({ state: next });
+      return next;
+    });
   })().finally(() => {
     inflight = null;
   });
@@ -195,11 +289,11 @@ async function allowTab(tabId, domains) {
 
 function updateBadge(state, blocked) {
   const color = !state.country ? '#6b7280' : blocked.length ? '#dc2626' : '#16a34a';
-  chrome.action.setBadgeText({ text: state.country || '?' });
+  chrome.action.setBadgeText({ text: badgeText(state) });
   chrome.action.setBadgeBackgroundColor({ color });
   chrome.action.setBadgeTextColor?.({ color: '#ffffff' });
   const names = blocked.map((r) => r.name || r.domains[0]).join(', ');
-  const where = state.country ? `${countryName(state.country)} · ${state.ip}` : t('unknownCountry');
+  const where = state.country ? `${countryName(state.country)} · ${state.ip}` : noCountryLabel(state);
   const what = blocked.length ? t('badgeBlocked', names) : t('badgeNoBlocks');
   chrome.action.setTitle({ title: `IP Please\n${where}\n${what}` });
 }
@@ -279,7 +373,7 @@ async function ensureAlarm() {
 
 async function init() {
   await ensureAlarm();
-  await sync(await getState());
+  await serialize(async () => sync(await getState()));
   await checkIp();
 }
 
@@ -299,14 +393,16 @@ chrome.storage.onChanged.addListener(async (changes, area) => {
   if (area !== 'local' || !changes.settings) return;
   await ensureAlarm();
   await revokeTabAllows([], { all: true });
-  const state = await getState();
-  state.blockedKey = await sync(state);
-  await chrome.storage.local.set({ state });
+  await serialize(async () => {
+    const state = await getState();
+    state.blockedKey = await sync(state);
+    await chrome.storage.local.set({ state });
+  });
 });
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   const handlers = {
-    check: () => checkIp(),
+    check: () => checkIp({ force: true }),
     authorize: () => authorize(msg.url, sender),
   };
   const handler = handlers[msg?.type];

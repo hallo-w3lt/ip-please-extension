@@ -1,4 +1,6 @@
-import { getSettings, getState, isRuleBlocked, countryName, describeRule, timeAgo } from './common.js';
+import {
+  getSettings, getState, isRuleBlocked, countryName, describeRule, timeAgo, noCountryLabel,
+} from './common.js';
 import { localize, setLang, t } from './i18n.js';
 
 const $ = (id) => document.getElementById(id);
@@ -13,7 +15,7 @@ async function render() {
 
   $('country').textContent = state.country
     ? `${countryName(state.country)} (${state.country})`
-    : t('unknownCountry');
+    : noCountryLabel(state);
   $('ip').textContent = state.ip ? t('ipLabel', state.ip) : '';
   $('checked').textContent = state.checkedAt
     ? `${t('checkedAgo', timeAgo(state.checkedAt))}${state.provider ? ` · ${state.provider}` : ''}`

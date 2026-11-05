@@ -1,5 +1,5 @@
 import {
-  getSettings, saveSettings, getState, countryName, normalizeDomain, timeAgo, COUNTRY_CODES, PRESETS,
+  getSettings, saveSettings, getState, countryName, normalizeDomain, timeAgo, noCountryLabel, COUNTRY_CODES, PRESETS,
 } from './common.js';
 import { localize, setLang, t } from './i18n.js';
 
@@ -57,7 +57,7 @@ function applyLanguage() {
 function renderStatus() {
   $('#cur-country').textContent = state.country
     ? `${countryName(state.country)} (${state.country})`
-    : t('unknownCountry');
+    : noCountryLabel(state);
   $('#cur-ip').textContent = state.ip ? `· ${t('ipLabel', state.ip)}` : '';
   $('#cur-checked').textContent = state.checkedAt
     ? `${t('checkedAgo', timeAgo(state.checkedAt))}${state.provider ? ` · ${state.provider}` : ''}`

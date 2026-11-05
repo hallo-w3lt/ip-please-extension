@@ -1,4 +1,4 @@
-import { countryName, describeRule, getSettings, timeAgo } from './common.js';
+import { countryName, describeRule, getSettings, noCountryLabel, timeAgo } from './common.js';
 import { localize, setLang, t } from './i18n.js';
 
 const $ = (id) => document.getElementById(id);
@@ -43,9 +43,9 @@ function render(res) {
   $('title').textContent = t('gateBlocked');
   $('reason').textContent = state.country
     ? t('gateReasonCountry', countryName(state.country))
-    : t('gateReasonUnknown');
+    : t(state.offline ? 'gateReasonOffline' : 'gateReasonUnknown');
   $('ip').textContent = state.ip || '—';
-  $('country').textContent = state.country ? `${countryName(state.country)} (${state.country})` : t('unknown');
+  $('country').textContent = state.country ? `${countryName(state.country)} (${state.country})` : noCountryLabel(state);
   $('checked').textContent = state.checkedAt ? timeAgo(state.checkedAt) : '—';
 
   $('reqs').replaceChildren(...res.blocked.map((rule) => {

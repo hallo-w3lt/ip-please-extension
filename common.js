@@ -16,7 +16,9 @@ export const DEFAULT_STATE = Object.freeze({
   country: null,
   provider: null,
   checkedAt: 0,
+  resolvedAt: 0,    // when `country` was last resolved for `ip`
   error: null,
+  offline: false,   // the check failed because there is no connection
 });
 
 export async function getSettings() {
@@ -54,6 +56,19 @@ export function isRuleBlocked(rule, state, settings) {
   if (!state.country) return settings.failClosed;
   const listed = rule.countries.includes(state.country);
   return rule.mode === 'block' ? listed : !listed;
+}
+
+// Toolbar badge: the country, or why there isn't one.
+// '?' = not checked yet, 'NoN' = no connection, 'Err' = the check failed.
+export function badgeText(state) {
+  if (state.country) return state.country;
+  if (state.offline) return 'NoN';
+  return state.error ? 'Err' : '?';
+}
+
+// What to show where the country would go when there isn't one.
+export function noCountryLabel(state) {
+  return t(state.offline ? 'noConnection' : 'unknownCountry');
 }
 
 const regionNames = {};
