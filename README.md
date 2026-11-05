@@ -31,7 +31,7 @@ Changes are saved automatically.
 ## How blocking works
 
 - **IP and country**: queries `cloudflare.com/cdn-cgi/trace` and, if that fails, `api.country.is`, `ipinfo.io` and `ipwho.is`. No API keys needed.
-- **Saved IP**: the IP is checked every time, but the country is only re-resolved when the IP changes (or after 30 min, or when you press *Check now*). When it changes, the other services are asked about the same IP and the country that two of them agree on wins, so one service with an outdated database can't leave you with a stale country.
+- **Saved IP**: the IP is checked every time, but the country is only re-resolved when the IP changes (or after 30 min, or when you press *Check now*). When it changes, the other services are asked about the same IP one at a time, and the country that two of them agree on wins (they stop being asked as soon as two agree, or after 5 seconds, in which case the first answer stands). That way one service with an outdated database can't leave you with a stale country.
 - **Blocking**: uses `declarativeNetRequest`. The main page is redirected to a block page, and every other request (scripts, images, XHR, iframes) is blocked, even when another site makes it.
 - **Open tabs**: if the country changes and a site becomes blocked, tabs that already have it open are sent to the block page.
 - **Automatic unblock**: the block page waits and opens the site on its own as soon as your IP meets the rule again.
@@ -44,7 +44,7 @@ Changes are saved automatically.
 Everything stays in your browser. There is no account, no analytics and no server of ours.
 
 - **What is stored**: your rules and options, and the result of the last check (IP, country, which service answered, when). It lives in the extension's local storage (`chrome.storage.local`) on your machine and is not synced.
-- **What is sent**: only the IP lookups. They go to Cloudflare, `api.country.is`, `ipinfo.io` and `ipwho.is`, which see your IP because that is what they geolocate. The services are tried in order and the first one that answers is used, so normally only Cloudflare is contacted. When your IP changes (or every 30 minutes, or when you press *Check now*), the other services are also asked about that same IP to confirm the country. The requests carry no cookies and are never cached. The addresses of the sites you visit are never sent anywhere.
+- **What is sent**: only the IP lookups. They go to Cloudflare, `api.country.is`, `ipinfo.io` and `ipwho.is`, which see your IP because that is what they geolocate. The services are tried in order and the first one that answers is used, so normally only Cloudflare is contacted. When your IP changes (or every 30 minutes, or when you press *Check now*), the next service is also asked about that same IP to confirm the country, and one more if the first two disagree, so usually two services are contacted. The requests carry no cookies and are never cached. The addresses of the sites you visit are never sent anywhere.
 - **No page access**: the extension has no content scripts and does not read or change the pages you visit. It only redirects or blocks requests for the domains in your rules.
 
 Why each permission is requested:
