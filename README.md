@@ -77,6 +77,10 @@ There is no build step and no dependencies: the extension is plain JavaScript mo
 - `common.js`: shared helpers, the country list and the site presets.
 - `i18n.js`: all UI strings, English and Spanish.
 
+## Related
+
+[my-country](https://github.com/hallo-w3lt/claude-plus-plus) is a Claude Code plugin that shows the country of your IP under the prompt, using the same lookup services.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
